@@ -3,184 +3,104 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>密码生成器 - 免费在线随机密码生成</title>
-  <meta name="description" content="免费在线密码生成器，可自定义长度、字符类型，生成强随机密码，一键复制。">
+  <title>密码生成器 - 在线随机密码/强密码生成</title>
+  <meta name="description" content="免费在线密码生成器，可自定义长度、字符类型，实时显示密码强度，浏览器本地处理。">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://fm-han.github.io/password-generator/">
-  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background: #0a0a1a; color: #e2e8f0; font-family: system-ui, sans-serif; min-height: 100vh; }
-    .glass { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(20px); border-radius: 16px; }
-    .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); transition: all 0.3s; }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99,102,241,0.4); }
-    .btn-outline { border: 1px solid rgba(99,102,241,0.4); transition: all 0.3s; }
-    .btn-outline:hover { background: rgba(99,102,241,0.1); }
-    input[type="range"] { -webkit-appearance: none; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.1); outline: none; }
-    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); cursor: pointer; }
-    .password-display { font-family: 'Courier New', monospace; letter-spacing: 2px; word-break: break-all; }
-    .strength-bar { height: 8px; border-radius: 4px; transition: all 0.5s; }
-    .strength-weak { width: 25%; background: #ef4444; }
-    .strength-fair { width: 50%; background: #f97316; }
-    .strength-good { width: 75%; background: #eab308; }
-    .strength-strong { width: 100%; background: #22c55e; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; line-height: 1.6; background: #fafafa; }
+    h1 { text-align: center; font-size: 1.8rem; color: #1a1a1a; }
+    h1 small { display: block; font-size: 0.85rem; color: #666; margin-top: 4px; font-weight: normal; }
+    .section { margin: 20px 0; padding: 16px; border: 1px solid #e0e0e0; border-radius: 8px; background: #fff; }
+    .password-display { font-family: monospace; font-size: 1.4rem; padding: 16px; background: #f8f9fa; border-radius: 6px; text-align: center; word-break: break-all; min-height: 60px; display: flex; align-items: center; justify-content: center; }
+    .strength-bar { height: 8px; border-radius: 4px; margin-top: 12px; transition: all 0.3s; }
+    .strength-text { text-align: center; margin-top: 8px; font-weight: 600; }
+    .slider-row { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
+    .slider-row label { width: 60px; font-weight: 500; }
+    .slider-row input[type="range"] { flex: 1; }
+    .slider-row span { width: 40px; text-align: right; font-weight: 600; }
+    .checkbox-group { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+    .checkbox-item { display: flex; align-items: center; gap: 8px; }
+    .buttons { display: flex; gap: 8px; margin-top: 16px; }
+    button { padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; }
+    .btn-generate { background: #007bff; color: #fff; flex: 1; }
+    .btn-copy { background: #28a745; color: #fff; }
+    button:hover { opacity: 0.9; }
+    .footer { text-align: center; margin: 24px 0; padding: 12px; font-size: 0.85rem; color: #28a745; font-weight: 500; }
   </style>
 </head>
-<body class="flex flex-col items-center justify-start p-6">
+<body>
 
-  <header class="text-center mb-8">
-    <h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">密码生成器</h1>
-    <p class="text-gray-400 mt-2 text-sm">自定义长度与字符类型，生成安全随机密码</p>
-  </header>
+  <h1>密码生成器 <small>随机强密码 · 长度自由 · 浏览器本地处理</small></h1>
 
-  <main class="w-full max-w-2xl flex flex-col gap-6">
+  <div class="section">
+    <label>生成的密码</label>
+    <div id="password" class="password-display">点击"生成密码"开始</div>
+    <div id="strengthBar" class="strength-bar" style="background:#e0e0e0;"></div>
+    <div id="strengthText" class="strength-text" style="color:#666;">-</div>
 
-    <!-- 密码显示 -->
-    <div class="glass p-6 text-center">
-      <div id="passwordDisplay" class="password-display text-2xl text-indigo-300 min-h-[3rem] mb-4"></div>
-      <div class="flex gap-3 justify-center">
-        <button onclick="generate()" class="btn-primary px-8 py-3 rounded-xl font-medium text-white text-sm">重新生成 🔄</button>
-        <button onclick="copyPwd()" class="btn-outline px-6 py-3 rounded-xl text-gray-300 text-sm">复制 📋</button>
-      </div>
+    <div class="slider-row">
+      <label>长度</label>
+      <input type="range" id="length" min="6" max="64" value="16" oninput="document.getElementById('lenVal').textContent = this.value">
+      <span id="lenVal">16</span>
     </div>
 
-    <!-- 强度指示 -->
-    <div class="glass p-4">
-      <div class="flex justify-between items-center mb-2">
-        <span class="text-sm text-gray-400">密码强度</span>
-        <span id="strengthLabel" class="text-sm font-bold text-red-400">弱</span>
-      </div>
-      <div class="w-full bg-gray-800 rounded-full overflow-hidden">
-        <div id="strengthBar" class="strength-bar strength-weak"></div>
-      </div>
+    <div class="checkbox-group">
+      <label class="checkbox-item"><input type="checkbox" id="upper" checked onchange="generate()"> 大写字母 (A-Z)</label>
+      <label class="checkbox-item"><input type="checkbox" id="lower" checked onchange="generate()"> 小写字母 (a-z)</label>
+      <label class="checkbox-item"><input type="checkbox" id="number" checked onchange="generate()"> 数字 (0-9)</label>
+      <label class="checkbox-item"><input type="checkbox" id="symbol" checked onchange="generate()"> 特殊符号 (!@#$%^&*)</label>
     </div>
 
-    <!-- 长度 -->
-    <div class="glass p-4">
-      <div class="flex justify-between items-center mb-3">
-        <label class="text-sm text-gray-400">密码长度</label>
-        <span id="lengthLabel" class="text-indigo-400 font-bold">16</span>
-      </div>
-      <input type="range" id="lengthSlider" min="6" max="64" value="16" class="w-full" oninput="document.getElementById('lengthLabel').textContent = this.value; generate()">
-      <div class="flex justify-between text-xs text-gray-600 mt-1">
-        <span>6</span><span>32</span><span>64</span>
-      </div>
+    <div class="buttons">
+      <button class="btn-generate" onclick="generate()">生成密码</button>
+      <button class="btn-copy" onclick="copyPassword()">复制</button>
     </div>
+  </div>
 
-    <!-- 字符类型 -->
-    <div class="glass p-4 space-y-3">
-      <label class="text-sm text-gray-400 block mb-2">字符类型</label>
-      <label class="flex items-center gap-3 cursor-pointer">
-        <input type="checkbox" id="chkUpper" checked onchange="generate()" class="w-5 h-5 accent-indigo-500">
-        <span class="text-sm text-gray-300">大写字母 <span class="text-gray-500">(A-Z)</span></span>
-      </label>
-      <label class="flex items-center gap-3 cursor-pointer">
-        <input type="checkbox" id="chkLower" checked onchange="generate()" class="w-5 h-5 accent-indigo-500">
-        <span class="text-sm text-gray-300">小写字母 <span class="text-gray-500">(a-z)</span></span>
-      </label>
-      <label class="flex items-center gap-3 cursor-pointer">
-        <input type="checkbox" id="chkNumber" checked onchange="generate()" class="w-5 h-5 accent-indigo-500">
-        <span class="text-sm text-gray-300">数字 <span class="text-gray-500">(0-9)</span></span>
-      </label>
-      <label class="flex items-center gap-3 cursor-pointer">
-        <input type="checkbox" id="chkSymbol" checked onchange="generate()" class="w-5 h-5 accent-indigo-500">
-        <span class="text-sm text-gray-300">特殊符号 <span class="text-gray-500">(!@#$%^&*)</span></span>
-      </label>
-    </div>
-
-    <!-- 预设 -->
-    <div class="glass p-4">
-      <p class="text-xs text-gray-500 mb-3">快速预设</p>
-      <div class="flex gap-2 flex-wrap">
-        <button onclick="setPreset(8,'number')" class="btn-outline px-4 py-2 rounded-lg text-sm text-gray-400">8位 纯数字</button>
-        <button onclick="setPreset(12,'all')" class="btn-outline px-4 py-2 rounded-lg text-sm text-gray-400">12位 全部</button>
-        <button onclick="setPreset(16,'all')" class="btn-outline px-4 py-2 rounded-lg text-sm text-gray-400">16位 全部</button>
-        <button onclick="setPreset(32,'all')" class="btn-outline px-4 py-2 rounded-lg text-sm text-gray-400">32位 全部</button>
-      </div>
-    </div>
-
-  </main>
+  <div class="footer">100% 免费 · 数据不上传服务器 · 仅浏览器本地处理</div>
 
   <script>
-    const CHAR_UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const CHAR_LOWER = 'abcdefghijklmnopqrstuvwxyz';
-    const CHAR_NUMBER = '0123456789';
-    const CHAR_SYMBOL = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+    const chars = { upper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', lower: 'abcdefghijklmnopqrstuvwxyz', number: '0123456789', symbol: '!@#$%^&*()_+-=[]{}|;:,.<>?' };
 
     function generate() {
-      const len = parseInt(document.getElementById('lengthSlider').value);
       let pool = '';
-      if (document.getElementById('chkUpper').checked) pool += CHAR_UPPER;
-      if (document.getElementById('chkLower').checked) pool += CHAR_LOWER;
-      if (document.getElementById('chkNumber').checked) pool += CHAR_NUMBER;
-      if (document.getElementById('chkSymbol').checked) pool += CHAR_SYMBOL;
-
-      if (!pool) {
-        document.getElementById('passwordDisplay').textContent = '请至少选择一种字符类型';
-        return;
-      }
-
+      if (document.getElementById('upper').checked) pool += chars.upper;
+      if (document.getElementById('lower').checked) pool += chars.lower;
+      if (document.getElementById('number').checked) pool += chars.number;
+      if (document.getElementById('symbol').checked) pool += chars.symbol;
+      
+      if (!pool) { alert('请至少选择一种字符类型'); return; }
+      
+      const len = parseInt(document.getElementById('length').value);
       let pwd = '';
-      // 确保每种选中的类型至少出现一次
-      const guarantees = [];
-      if (document.getElementById('chkUpper').checked) guarantees.push(CHAR_UPPER[Math.floor(Math.random() * CHAR_UPPER.length)]);
-      if (document.getElementById('chkLower').checked) guarantees.push(CHAR_LOWER[Math.floor(Math.random() * CHAR_LOWER.length)]);
-      if (document.getElementById('chkNumber').checked) guarantees.push(CHAR_NUMBER[Math.floor(Math.random() * CHAR_NUMBER.length)]);
-      if (document.getElementById('chkSymbol').checked) guarantees.push(CHAR_SYMBOL[Math.floor(Math.random() * CHAR_SYMBOL.length)]);
-
-      // 剩余随机填充
-      for (let i = guarantees.length; i < len; i++) {
-        pwd += pool[Math.floor(Math.random() * pool.length)];
-      }
-
-      // 插入保证字符
-      guarantees.forEach(ch => {
-        const pos = Math.floor(Math.random() * (len || 1));
-        pwd = pwd.slice(0, pos) + ch + pwd.slice(pos);
-      });
-
-      // 如果长度小于保证字符数
-      if (len < guarantees.length) pwd = guarantees.slice(0, len).join('');
-
-      document.getElementById('passwordDisplay').textContent = pwd;
+      for (let i = 0; i < len; i++) pwd += pool[Math.floor(Math.random() * pool.length)];
+      
+      document.getElementById('password').textContent = pwd;
       updateStrength(pwd);
     }
 
     function updateStrength(pwd) {
+      let score = 0;
+      if (pwd.length >= 8) score++;
+      if (pwd.length >= 12) score++;
+      if (pwd.length >= 16) score++;
+      if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) score++;
+      if (/[0-9]/.test(pwd) && /[^A-Za-z0-9]/.test(pwd)) score++;
+
       const bar = document.getElementById('strengthBar');
-      const label = document.getElementById('strengthLabel');
-      const len = pwd.length;
-      const hasUpper = /[A-Z]/.test(pwd);
-      const hasLower = /[a-z]/.test(pwd);
-      const hasNumber = /[0-9]/.test(pwd);
-      const hasSymbol = /[^A-Za-z0-9]/.test(pwd);
-      const types = [hasUpper, hasLower, hasNumber, hasSymbol].filter(Boolean).length;
-      const score = len * types;
-
-      bar.className = 'strength-bar';
-      if (score < 30) { bar.classList.add('strength-weak'); label.textContent = '弱'; label.className = 'text-sm font-bold text-red-400'; }
-      else if (score < 60) { bar.classList.add('strength-fair'); label.textContent = '一般'; label.className = 'text-sm font-bold text-orange-400'; }
-      else if (score < 100) { bar.classList.add('strength-good'); label.textContent = '良好'; label.className = 'text-sm font-bold text-yellow-400'; }
-      else { bar.classList.add('strength-strong'); label.textContent = '强'; label.className = 'text-sm font-bold text-green-400'; }
+      const text = document.getElementById('strengthText');
+      
+      if (score <= 2) { bar.style.background = '#dc3545'; bar.style.width = '30%'; text.textContent = '弱密码'; text.style.color = '#dc3545'; }
+      else if (score <= 3) { bar.style.background = '#ffc107'; bar.style.width = '60%'; text.textContent = '中等强度'; text.style.color = '#ffc107'; }
+      else { bar.style.background = '#28a745'; bar.style.width = '100%'; text.textContent = '强密码'; text.style.color = '#28a745'; }
     }
 
-    function setPreset(len, type) {
-      document.getElementById('lengthSlider').value = len;
-      document.getElementById('lengthLabel').textContent = len;
-      document.getElementById('chkUpper').checked = type === 'number' ? false : true;
-      document.getElementById('chkLower').checked = type === 'number' ? false : true;
-      document.getElementById('chkNumber').checked = true;
-      document.getElementById('chkSymbol').checked = type === 'number' ? false : true;
-      generate();
-    }
-
-    function copyPwd() {
-      const pwd = document.getElementById('passwordDisplay').textContent;
-      if (!pwd || pwd.includes('请选择')) return;
-      navigator.clipboard.writeText(pwd).then(() => {
-        const btn = document.querySelector('[onclick="copyPwd()"]');
-        btn.textContent = '已复制!';
-        setTimeout(() => btn.textContent = '复制 📋', 1500);
-      });
+    function copyPassword() {
+      const pwd = document.getElementById('password').textContent;
+      if (pwd && pwd !== '点击"生成密码"开始') {
+        navigator.clipboard.writeText(pwd).then(() => alert('密码已复制!'));
+      }
     }
 
     generate();
